@@ -1,0 +1,46 @@
+name: status probe
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: probe
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: probe & self-heal
+        id: probe
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: node probe.mjs
+      - name: commit history
+        run: |
+          git config user.name "status-probe"
+          git config user.email "probe@newsflash.sh"
+          git add history.json incidents.json
+          git diff --cached --quiet && exit 0
+          git commit -m "probe $(date -u +%Y-%m-%dT%H:%M)Z"
+          # The 5-min cadence can race a manual edit; rebase-retry once.
+          git push || { git pull --rebase && git push; }
+      - name: open alert issue on sustained outage
+        if: steps.probe.outputs.consecutive == '3'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue create \
+            --title "Outage: ${{ steps.probe.outputs.failing }} unreachable ($(date -u +%Y-%m-%d\ %H:%M)Z)" \
+            --body "Three consecutive probe failures for: ${{ steps.probe.outputs.failing }}. Auto-restart has been attempted (see probe logs). Status page: https://status.newsflash.sh" \
+            --repo "$GITHUB_REPOSITORY" || true

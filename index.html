@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>newsflash.sh status</title>
+<link rel="icon" href="https://newsflash.sh/icon.svg">
+<style>
+  :root { --bg:#0e0f12; --panel:#15171c; --line:#24262c; --fg:#e8e6e1; --dim:#9aa0a6; --amber:#ffb020; --ok:#3fb950; --bad:#f85149; --warn:#d29922; }
+  * { box-sizing:border-box; margin:0; }
+  body { background:var(--bg); color:var(--fg); font:15px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; padding:48px 20px; }
+  .wrap { max-width:860px; margin:0 auto; }
+  header { display:flex; align-items:baseline; gap:12px; margin-bottom:8px; flex-wrap:wrap; }
+  h1 { font-size:22px; } h1 a { color:var(--amber); text-decoration:none; }
+  h1 a::after { content:"▮"; animation:blink 1.2s steps(1) infinite; margin-left:2px; }
+  @keyframes blink { 50% { opacity:0; } }
+  .overall { padding:14px 18px; border:1px solid var(--line); border-radius:8px; background:var(--panel); margin:20px 0; font-weight:700; }
+  .overall.ok { border-color:#1f4428; } .overall.bad { border-color:#5c2326; }
+  .dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:10px; }
+  .ok .dot { background:var(--ok); } .bad .dot { background:var(--bad); }
+  .comp { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px 18px; margin-bottom:14px; }
+  .comp-head { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; flex-wrap:wrap; gap:6px; }
+  .comp-head b { font-size:15px; }
+  .comp-head .pct { color:var(--dim); font-size:13px; }
+  .bars { display:flex; gap:2px; height:34px; align-items:stretch; }
+  .bars i { flex:1; border-radius:2px; background:#2c2f36; min-width:2px; }
+  .bars i.u100 { background:var(--ok); } .bars i.u99 { background:#7fae4e; }
+  .bars i.u95 { background:var(--warn); } .bars i.u0 { background:var(--bad); }
+  .legend { display:flex; justify-content:space-between; color:var(--dim); font-size:12px; margin-top:6px; }
+  h2 { font-size:16px; margin:34px 0 12px; color:var(--amber); }
+  .inc { border-left:3px solid var(--bad); padding:10px 16px; margin-bottom:14px; background:var(--panel); border-radius:0 8px 8px 0; }
+  .inc.resolved { border-left-color:#2c2f36; }
+  .inc b { display:block; }
+  .inc .when { color:var(--dim); font-size:13px; }
+  .inc p { margin-top:6px; color:var(--dim); font-size:14px; }
+  .none { color:var(--dim); }
+  footer { margin-top:40px; color:var(--dim); font-size:13px; }
+  footer a { color:var(--amber); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1><a href="https://newsflash.sh">newsflash.sh</a></h1>
+    <span style="color:var(--dim)">status</span>
+  </header>
+  <div class="overall" id="overall"><span class="dot"></span><span id="overall-text">loading…</span></div>
+  <div id="components"></div>
+  <h2>$ incidents --recent</h2>
+  <div id="incidents"><span class="none">loading…</span></div>
+  <footer>
+    Probed every 5 minutes from independent infrastructure (GitHub Actions).
+    Sustained API failure triggers an automatic machine restart.
+    <a href="https://github.com/zatmonkey/newsflash-status">source &amp; probe history</a> ·
+    <a href="https://newsflash.sh/docs">docs</a> · contact@newsflash.sh
+  </footer>
+</div>
+<script>
+const NAMES = { website: "Website (newsflash.sh)", api: "REST API (/api)", mcp: "MCP server (/mcp)" };
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+
+async function main() {
+  const bust = "?t=" + Math.floor(Date.now() / 60000);
+  const [history, incidents] = await Promise.all([
+    fetch("history.json" + bust).then((r) => r.json()),
+    fetch("incidents.json" + bust).then((r) => r.json()),
+  ]);
+
+  const last = history.raw[history.raw.length - 1] ?? {};
+  const comps = Object.keys(NAMES);
+  const lastAge = last.t ? Date.now() - last.t : Infinity;
+  const allUp = comps.every((c) => last[c]?.[0] === 1);
+  const overall = document.getElementById("overall");
+  overall.className = "overall " + (allUp ? "ok" : "bad");
+  document.getElementById("overall-text").textContent = lastAge > 30 * 60000
+    ? "probe data is stale — check GitHub Actions"
+    : allUp
+      ? "all systems operational"
+      : "degraded: " + comps.filter((c) => last[c]?.[0] !== 1).map((c) => NAMES[c]).join(", ");
+
+  // 90-day bars from daily aggregates
+  const days = [];
+  for (let i = 89; i >= 0; i--) days.push(new Date(Date.now() - i * 86400000).toISOString().slice(0, 10));
+  document.getElementById("components").innerHTML = comps.map((c) => {
+    let probes = 0, fails = 0;
+    const bars = days.map((d) => {
+      const agg = history.daily?.[d]?.[c];
+      if (!agg) return '<i title="' + d + ': no data"></i>';
+      probes += agg.probes; fails += agg.fails;
+      const up = 100 * (1 - agg.fails / agg.probes);
+      const cls = up === 100 ? "u100" : up >= 99 ? "u99" : up >= 95 ? "u95" : "u0";
+      return '<i class="' + cls + '" title="' + d + ": " + up.toFixed(2) + '% (' + agg.fails + " fails)\"></i>";
+    }).join("");
+    const pct = probes ? (100 * (1 - fails / probes)).toFixed(2) + "% uptime" : "collecting data";
+    const state = last[c]?.[0] === 1 ? "operational · " + last[c][1] + "ms" : "DOWN";
+    return '<div class="comp"><div class="comp-head"><b>' + NAMES[c] + "</b><span class=\"pct\">" + state + " · 90d: " + pct + '</span></div><div class="bars">' + bars + '</div><div class="legend"><span>90 days ago</span><span>today</span></div></div>';
+  }).join("");
+
+  document.getElementById("incidents").innerHTML = incidents.length
+    ? incidents.slice(0, 20).map((i) => {
+        const dur = i.resolved ? Math.round((Date.parse(i.resolved) - Date.parse(i.started)) / 60000) + " min" : "ongoing";
+        return '<div class="inc' + (i.resolved ? " resolved" : "") + '"><b>' + esc(i.title) + "</b><span class=\"when\">" +
+          esc(i.started.slice(0, 16).replace("T", " ")) + " UTC · " + dur + "</span><p>" + esc(i.body) + "</p></div>";
+      }).join("")
+    : '<span class="none">no incidents recorded</span>';
+}
+main().catch((e) => { document.getElementById("overall-text").textContent = "failed to load status data: " + e.message; });
+</script>
+</body>
+</html>

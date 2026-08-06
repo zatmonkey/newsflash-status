@@ -1,0 +1,20 @@
+[
+  {
+    "id": "2026-08-06-api",
+    "component": "api",
+    "started": "2026-08-06T16:37:00.000Z",
+    "resolved": "2026-08-06T16:38:00.000Z",
+    "title": "Brief outage: machine OOM-killed, auto-restarted",
+    "body": "Same root cause as 2026-08-05: the feed-crawler memory leak hit the 512MB ceiling. The machine restarted cleanly this time (~1 min blip). Root cause was identified and fixed the same day: the RSS fetch path leaked a socket + response buffer for every dead feed on every crawl cycle (~16MB per 10-minute cycle). Feeds are now fetched with hard-abort timeouts; memory is flat. Postmortem: https://github.com/zatmonkey/newsflash-status#2026-08-06",
+    "auto": false
+  },
+  {
+    "id": "2026-08-05-api",
+    "component": "api",
+    "started": "2026-08-05T11:06:00.000Z",
+    "resolved": "2026-08-05T19:53:00.000Z",
+    "title": "Outage: OOM-killed process restarted into a wedged state",
+    "body": "The app process was OOM-killed at 04:06 PT (memory leak in the feed crawler, later fixed). The auto-restarted process came back wedged — health checks timed out and Fly's edge refused all traffic. Recovered by a manual machine restart. Follow-ups shipped: swap enabled, automatic restart on sustained health failure (this probe), and the leak itself fixed on 2026-08-06.",
+    "auto": false
+  }
+]
