@@ -1,1 +1,1 @@
-{"raw":[],"daily":{},"state":{}}
+{"raw":[{"t":1786050366888,"website":[1,879],"api":[1,502],"mcp":[1,73]}],"daily":{"2026-08-06":{"website":{"probes":1,"fails":0,"ms":879},"api":{"probes":1,"fails":0,"ms":502},"mcp":{"probes":1,"fails":0,"ms":73}}},"state":{"website":{"consecutiveFails":0},"api":{"consecutiveFails":0},"mcp":{"consecutiveFails":0}}}
