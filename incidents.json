@@ -5,7 +5,7 @@
     "started": "2026-08-07T22:07:00.000Z",
     "resolved": "2026-08-07T22:15:00.000Z",
     "title": "8-minute outage during a database migration deploy",
-    "body": "A deploy shipping a schema migration (moving event embeddings to a side table, part of a database cost-reduction effort) stalled at boot: the migration's CREATE INDEX statement blocked on a lock held by a concurrent index build still running from the pre-deploy backfill. Health checks failed and the edge refused traffic until the conflicting index build was terminated, letting the migration and boot complete. Lesson recorded: never ship a migration touching a table while a concurrent index build on it is still running \u2014 sequence them.",
+    "body": "A deploy shipping a schema migration (moving event embeddings to a side table, part of a database cost-reduction effort) stalled at boot: the migration's CREATE INDEX statement blocked on a lock held by a concurrent index build still running from the pre-deploy backfill. Health checks failed and the edge refused traffic until the conflicting index build was terminated, letting the migration and boot complete. Lesson recorded: never ship a migration touching a table while a concurrent index build on it is still running — sequence them.",
     "auto": false
   },
   {
@@ -23,7 +23,7 @@
     "started": "2026-08-05T11:06:00.000Z",
     "resolved": "2026-08-05T19:53:00.000Z",
     "title": "Outage: OOM-killed process restarted into a wedged state",
-    "body": "The app process was OOM-killed at 04:06 PT (memory leak in the feed crawler, later fixed). The auto-restarted process came back wedged \u2014 health checks timed out and Fly's edge refused all traffic. Recovered by a manual machine restart. Follow-ups shipped: swap enabled, automatic restart on sustained health failure (this probe), and the leak itself fixed on 2026-08-06.",
+    "body": "The app process was OOM-killed at 04:06 PT (memory leak in the feed crawler, later fixed). The auto-restarted process came back wedged — health checks timed out and Fly's edge refused all traffic. Recovered by a manual machine restart. Follow-ups shipped: swap enabled, automatic restart on sustained health failure (this probe), and the leak itself fixed on 2026-08-06.",
     "auto": false
   }
 ]
