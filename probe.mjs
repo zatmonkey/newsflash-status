@@ -7,7 +7,21 @@ import { readFileSync, writeFileSync } from "node:fs";
 
 const COMPONENTS = {
   website: { url: "https://newsflash.sh/", method: "GET", ok: (res) => res.status === 200 },
-  api: { url: "https://newsflash.sh/api/health", method: "GET", ok: async (res) => res.status === 200 && (await res.json()).ok === true },
+  api: {
+    url: "https://newsflash.sh/api/health",
+    method: "GET",
+    // Health alone is not enough: the crawler froze for a WEEK (2026-08-17→24)
+    // while every endpoint answered 200. A healthy news service must also have
+    // FRESH data — the newest article may never be older than 2 hours (the
+    // crawler runs every 10 minutes; feeds are never all quiet for 2h).
+    ok: async (res) => {
+      if (res.status !== 200) return false;
+      const body = await res.json();
+      if (body.ok !== true) return false;
+      const ageMs = Date.now() - Date.parse(body.latest);
+      return Number.isFinite(ageMs) && ageMs < 2 * 3600_000;
+    },
+  },
   mcp: {
     url: "https://newsflash.sh/mcp",
     method: "POST",
