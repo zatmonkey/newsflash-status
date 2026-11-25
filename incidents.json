@@ -14,7 +14,7 @@
     "started": "2026-11-25T23:11:35.559Z",
     "resolved": null,
     "title": "api unreachable (timeout)",
-    "body": "Auto-detected by the status probe. Investigation pending.",
+    "body": "Auto-detected by the status probe. Investigation pending. Auto-restart triggered at 2026-11-25T23:53:32.615Z.",
     "auto": true
   },
   {
