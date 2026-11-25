@@ -1,5 +1,32 @@
 [
   {
+    "id": "2026-11-25-mcp",
+    "component": "mcp",
+    "started": "2026-11-25T23:11:35.559Z",
+    "resolved": null,
+    "title": "mcp unreachable (timeout)",
+    "body": "Auto-detected by the status probe. Investigation pending.",
+    "auto": true
+  },
+  {
+    "id": "2026-11-25-api",
+    "component": "api",
+    "started": "2026-11-25T23:11:35.559Z",
+    "resolved": null,
+    "title": "api unreachable (timeout)",
+    "body": "Auto-detected by the status probe. Investigation pending.",
+    "auto": true
+  },
+  {
+    "id": "2026-11-25-website",
+    "component": "website",
+    "started": "2026-11-25T23:11:35.559Z",
+    "resolved": null,
+    "title": "website unreachable (timeout)",
+    "body": "Auto-detected by the status probe. Investigation pending.",
+    "auto": true
+  },
+  {
     "id": "2026-08-17-ingest",
     "component": "api",
     "started": "2026-08-17T17:47:00.000Z",
