@@ -3,7 +3,7 @@
     "id": "2026-11-25-mcp",
     "component": "mcp",
     "started": "2026-11-25T23:11:35.559Z",
-    "resolved": null,
+    "resolved": "2026-11-26T00:32:33.726Z",
     "title": "mcp unreachable (timeout)",
     "body": "Auto-detected by the status probe. Investigation pending.",
     "auto": true
@@ -12,7 +12,7 @@
     "id": "2026-11-25-api",
     "component": "api",
     "started": "2026-11-25T23:11:35.559Z",
-    "resolved": null,
+    "resolved": "2026-11-26T00:32:33.726Z",
     "title": "api unreachable (timeout)",
     "body": "Auto-detected by the status probe. Investigation pending. Auto-restart triggered at 2026-11-25T23:53:32.615Z.",
     "auto": true
@@ -21,7 +21,7 @@
     "id": "2026-11-25-website",
     "component": "website",
     "started": "2026-11-25T23:11:35.559Z",
-    "resolved": null,
+    "resolved": "2026-11-26T00:32:33.726Z",
     "title": "website unreachable (timeout)",
     "body": "Auto-detected by the status probe. Investigation pending.",
     "auto": true
